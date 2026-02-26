@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import plist from "plist";
+import { convertPngToStandard } from "./cgbi-png";
 
 export interface FileEntry {
   path: string;
@@ -77,19 +78,43 @@ function buildFileTree(zip: JSZip): FileEntry {
   return root;
 }
 
-function parseBinaryPlist(buffer: ArrayBuffer): Record<string, unknown> {
+function parsePlistData(buffer: ArrayBuffer): Record<string, unknown> {
   const uint8 = new Uint8Array(buffer);
   const header = new TextDecoder().decode(uint8.slice(0, 6));
 
   if (header === "bplist") {
+    // Binary plist — parse directly with Buffer, no XML round-trip
     const nodeBuffer = Buffer.from(uint8);
-    const parsed = plist.parse(nodeBuffer as unknown as string) as plist.PlistValue;
-    const xml = plist.build(parsed);
-    return plist.parse(xml) as Record<string, unknown>;
+    return plist.parse(nodeBuffer as unknown as string) as Record<string, unknown>;
   }
 
-  const text = new TextDecoder().decode(uint8);
+  // XML plist — decode as text and parse
+  const text = new TextDecoder().decode(uint8).trim();
+  if (!text.startsWith("<?xml") && !text.startsWith("<plist") && !text.startsWith("<!DOCTYPE")) {
+    throw new Error("Unrecognized plist format");
+  }
   return plist.parse(text) as Record<string, unknown>;
+}
+
+async function tryLoadIcon(
+  zip: JSZip,
+  path: string
+): Promise<string | null> {
+  const file = zip.file(path);
+  if (!file) return null;
+  try {
+    const uint8 = await file.async("uint8array");
+    // Try CgBI conversion (also handles standard PNGs)
+    const url = await convertPngToStandard(uint8);
+    if (url) return url;
+    // Fallback: try as raw blob (for JPEG or other formats)
+    const buf = new ArrayBuffer(uint8.byteLength);
+    new Uint8Array(buf).set(uint8);
+    const blob = new Blob([buf], { type: "image/png" });
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
 }
 
 async function findAppIcon(
@@ -97,45 +122,48 @@ async function findAppIcon(
   appPath: string,
   iconFiles: string[]
 ): Promise<string | null> {
+  // Build candidate list from plist icon names
   const candidates = [
     ...iconFiles.map((f) => `${appPath}/${f}`),
-    ...iconFiles.map((f) => `${appPath}/${f}@2x.png`),
     ...iconFiles.map((f) => `${appPath}/${f}@3x.png`),
+    ...iconFiles.map((f) => `${appPath}/${f}@2x.png`),
     ...iconFiles.map((f) => `${appPath}/${f}.png`),
+    `${appPath}/AppIcon60x60@3x.png`,
     `${appPath}/AppIcon60x60@2x.png`,
     `${appPath}/AppIcon76x76@2x~ipad.png`,
-    `${appPath}/AppIcon60x60@3x.png`,
-    `${appPath}/Icon-60@2x.png`,
     `${appPath}/Icon-60@3x.png`,
-    `${appPath}/Icon.png`,
+    `${appPath}/Icon-60@2x.png`,
     `${appPath}/Icon@2x.png`,
+    `${appPath}/Icon.png`,
   ];
 
   for (const candidate of candidates) {
-    const file = zip.file(candidate);
+    const url = await tryLoadIcon(zip, candidate);
+    if (url) return url;
+  }
+
+  // Fallback: search for any AppIcon PNG in the app bundle
+  const allFiles = Object.keys(zip.files);
+  const iconPattern = /AppIcon.*\.png$/i;
+  // Prefer larger icons (sort by name descending to get @3x before @2x)
+  const iconMatches = allFiles
+    .filter((f) => f.startsWith(appPath + "/") && iconPattern.test(f) && !zip.files[f].dir)
+    .sort((a, b) => b.localeCompare(a));
+
+  for (const iconPath of iconMatches) {
+    const url = await tryLoadIcon(zip, iconPath);
+    if (url) return url;
+  }
+
+  // Last resort: iTunesArtwork in IPA root (standard JPEG/PNG, not CgBI)
+  for (const artworkPath of ["iTunesArtwork@2x", "iTunesArtwork"]) {
+    const file = zip.file(artworkPath);
     if (file) {
       try {
         const blob = await file.async("blob");
         return URL.createObjectURL(blob);
       } catch {
         continue;
-      }
-    }
-  }
-
-  const iconPattern = /AppIcon.*\.png$/i;
-  const allFiles = Object.keys(zip.files);
-  const iconFile = allFiles.find(
-    (f) => f.startsWith(appPath) && iconPattern.test(f)
-  );
-  if (iconFile) {
-    const file = zip.file(iconFile);
-    if (file) {
-      try {
-        const blob = await file.async("blob");
-        return URL.createObjectURL(blob);
-      } catch {
-        return null;
       }
     }
   }
@@ -168,10 +196,19 @@ export async function parseIPA(file: File): Promise<{ info: IPAInfo; zip: JSZip 
   let plistData: Record<string, unknown>;
 
   try {
-    plistData = parseBinaryPlist(plistBuffer);
+    plistData = parsePlistData(plistBuffer);
   } catch {
-    const text = await infoPlistFile.async("text");
-    plistData = plist.parse(text) as Record<string, unknown>;
+    // Only try XML fallback if data actually looks like XML text
+    const text = new TextDecoder().decode(new Uint8Array(plistBuffer)).trim();
+    if (text.startsWith("<")) {
+      try {
+        plistData = plist.parse(text) as Record<string, unknown>;
+      } catch {
+        throw new Error("Failed to parse Info.plist: unsupported format");
+      }
+    } else {
+      throw new Error("Failed to parse Info.plist: unsupported binary format");
+    }
   }
 
   const icons = plistData.CFBundleIcons as Record<string, unknown> | undefined;
