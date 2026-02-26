@@ -178,8 +178,8 @@ export async function parseIPA(file: File): Promise<{ info: IPAInfo; zip: JSZip 
   const primaryIcon = icons?.CFBundlePrimaryIcon as Record<string, unknown> | undefined;
   const iconFileNames = (primaryIcon?.CFBundleIconFiles as string[]) || [];
 
-  const ipaPadIcons = plistData["CFBundleIcons~ipad"] as Record<string, unknown> | undefined;
-  const ipadPrimary = ipaPadIcons?.CFBundlePrimaryIcon as Record<string, unknown> | undefined;
+  const ipadIcons = plistData["CFBundleIcons~ipad"] as Record<string, unknown> | undefined;
+  const ipadPrimary = ipadIcons?.CFBundlePrimaryIcon as Record<string, unknown> | undefined;
   const ipadIconFiles = (ipadPrimary?.CFBundleIconFiles as string[]) || [];
 
   const allIconFiles = [...new Set([...iconFileNames, ...ipadIconFiles])];

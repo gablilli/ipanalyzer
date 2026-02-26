@@ -50,7 +50,9 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName.replace(".ipa", "_modified.ipa");
+      a.download = fileName.endsWith(".ipa")
+        ? fileName.slice(0, -4) + "_modified.ipa"
+        : fileName + "_modified";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
