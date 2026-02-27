@@ -108,7 +108,7 @@ function PlistValue({
       >
         <span className="text-muted-foreground w-48 shrink-0 truncate">{keyName}</span>
         <button
-          className={`px-2 py-0.5 border text-xs ${
+          className={`px-2 py-0.5 border rounded text-xs ${
             value ? "border-green-600 text-green-400" : "border-red-600 text-red-400"
           }`}
           onClick={() => onChange(keyName, !value)}
@@ -182,7 +182,7 @@ export default function PlistEditor({ plistData, onSave }: PlistEditorProps) {
   );
 
   return (
-    <div className="border border-border overflow-hidden">
+    <div className="border border-border rounded-md overflow-hidden">
       <div className="bg-muted px-4 py-2 border-b border-border flex items-center justify-between">
         <h3 className="text-xs font-bold tracking-wider uppercase">
           Info.plist
@@ -190,7 +190,7 @@ export default function PlistEditor({ plistData, onSave }: PlistEditorProps) {
         {hasChanges && (
           <button
             onClick={() => onSave(data)}
-            className="text-xs px-3 py-1 border border-foreground hover:bg-foreground hover:text-background transition-colors"
+            className="text-xs px-3 py-1 border border-foreground rounded-md hover:bg-foreground hover:text-background transition-colors"
           >
             apply changes
           </button>

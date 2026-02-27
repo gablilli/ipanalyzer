@@ -165,7 +165,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
   const isDangerous = result && detections > 0;
 
   return (
-    <div className="border border-border overflow-hidden">
+    <div className="border border-border rounded-md overflow-hidden">
       <div className="bg-muted px-4 py-2 border-b border-border flex items-center justify-between">
         <h3 className="text-xs font-bold tracking-wider uppercase">
           VirusTotal
@@ -200,11 +200,11 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="paste api key here..."
-              className="flex-1 bg-background border border-border px-2 py-1 text-xs focus:outline-none focus:border-muted-foreground"
+              className="flex-1 bg-background border border-border rounded-md px-2 py-1 text-xs focus:outline-none focus:border-muted-foreground"
             />
             <button
               onClick={handleSaveKey}
-              className="text-xs px-3 py-1 border border-border hover:border-muted-foreground transition-colors"
+              className="text-xs px-3 py-1 border border-border rounded-md hover:border-muted-foreground transition-colors"
             >
               save
             </button>
@@ -227,7 +227,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
             <button
               onClick={handleScan}
               disabled={isHashing || isScanning}
-              className="text-xs px-3 py-1.5 border border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
+              className="text-xs px-3 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
             >
               {isHashing ? "hashing..." : isScanning ? "scanning..." : "scan"}
             </button>
@@ -297,7 +297,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
                   {detections}/{result.total}
                 </span>
                 <span
-                  className={`text-xs px-2 py-0.5 border ${
+                  className={`text-xs px-2 py-0.5 border rounded ${
                     isClean
                       ? "border-green-800 text-green-400"
                       : "border-red-800 text-red-400"

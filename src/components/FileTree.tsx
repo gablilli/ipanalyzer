@@ -62,7 +62,7 @@ function FileNode({ entry, depth = 0 }: { entry: FileEntry; depth?: number }) {
 
 export default function FileTree({ tree }: FileTreeProps) {
   return (
-    <div className="border border-border overflow-hidden">
+    <div className="border border-border rounded-md overflow-hidden">
       <div className="bg-muted px-4 py-2 border-b border-border">
         <h3 className="text-xs font-bold tracking-wider uppercase">
           File Structure

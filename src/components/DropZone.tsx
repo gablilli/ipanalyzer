@@ -71,7 +71,7 @@ export default function DropZone({ onFileSelected, isLoading }: DropZoneProps) {
         onDragOver={handleDrag}
         onDrop={handleDrop}
         className={`
-          w-full max-w-lg border border-dashed p-16
+          w-full max-w-lg border border-dashed rounded-xl p-16
           flex flex-col items-center justify-center gap-4
           transition-colors duration-200 cursor-pointer
           ${isDragging ? "border-foreground bg-accent/50" : "border-border hover:border-muted-foreground"}
@@ -81,7 +81,7 @@ export default function DropZone({ onFileSelected, isLoading }: DropZoneProps) {
       >
         {isLoading ? (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-6 h-6 border border-foreground border-t-transparent animate-spin" />
+            <div className="w-6 h-6 border border-foreground border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-muted-foreground">analyzing ipa...</p>
           </div>
         ) : (
@@ -117,6 +117,18 @@ export default function DropZone({ onFileSelected, isLoading }: DropZoneProps) {
         className="hidden"
         onChange={handleFileInput}
       />
+
+      <p className="text-xs text-muted-foreground/40">
+        open source —{" "}
+        <a
+          href="https://github.com/gablilli/ipanalyzer"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-muted-foreground transition-colors"
+        >
+          github.com/gablilli/ipanalyzer
+        </a>
+      </p>
     </div>
   );
 }

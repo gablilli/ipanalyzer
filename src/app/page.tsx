@@ -81,7 +81,7 @@ export default function Home() {
       <div>
         <DropZone onFileSelected={handleFileSelected} isLoading={isLoading} />
         {error && (
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-destructive/10 border border-destructive text-destructive px-4 py-2 text-xs">
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-destructive/10 border border-destructive rounded-md text-destructive px-4 py-2 text-xs">
             {error}
           </div>
         )}
@@ -108,14 +108,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
-              className="text-xs px-3 py-1.5 border border-border hover:border-muted-foreground transition-colors"
+              className="text-xs px-3 py-1.5 border border-border rounded-md hover:border-muted-foreground transition-colors"
             >
               new file
             </button>
             <button
               onClick={handleDownload}
               disabled={isDownloading}
-              className="text-xs px-3 py-1.5 border border-foreground bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
+              className="text-xs px-3 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
             >
               {isDownloading ? "building..." : modifiedPlist ? "download modified" : "download ipa"}
             </button>
@@ -135,7 +135,7 @@ export default function Home() {
         <FileTree tree={ipaInfo.fileTree} />
 
         {modifiedPlist && (
-          <div className="border border-green-800 bg-green-900/10 px-4 py-3 text-xs text-green-400 flex items-center justify-between">
+          <div className="border border-green-800 bg-green-900/10 rounded-md px-4 py-3 text-xs text-green-400 flex items-center justify-between">
             <span>plist changes pending — download to apply</span>
             <button
               onClick={() => setModifiedPlist(null)}
@@ -149,7 +149,7 @@ export default function Home() {
 
       {/* Error toast */}
       {error && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-destructive/10 border border-destructive text-destructive px-4 py-2 text-xs">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-destructive/10 border border-destructive rounded-md text-destructive px-4 py-2 text-xs">
           {error}
         </div>
       )}
