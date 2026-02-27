@@ -119,7 +119,7 @@ export default function DropZone({ onFileSelected, isLoading }: DropZoneProps) {
       />
 
       <p className="text-xs text-muted-foreground/40">
-        open source —{" "}
+        star it ❤️! —{" "}
         <a
           href="https://github.com/gablilli/ipanalyzer"
           target="_blank"
