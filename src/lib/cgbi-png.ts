@@ -1,10 +1,5 @@
 /**
  * Converts Apple's CgBI PNG format (used in iOS app bundles) to standard PNG.
- * CgBI PNGs differ from standard PNGs:
- * - Extra "CgBI" chunk before IHDR
- * - IDAT uses raw deflate (no zlib header/checksum)
- * - Pixel channels are BGRA instead of RGBA
- * - Alpha is pre-multiplied
  */
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -141,13 +136,13 @@ async function rawInflate(data: Uint8Array): Promise<Uint8Array> {
 }
 
 /**
- * Checks if a PNG is in CgBI format and converts it to standard PNG.
- * Returns a Blob URL string for the image, or null on failure.
+ * just checks if a png is in CgBI format and converts it to standard png.
+ * returns a blob URL string for the image, or null on failure.
  */
 export async function convertPngToStandard(
   data: Uint8Array
 ): Promise<string | null> {
-  // Verify PNG signature
+  // verify png signature
   for (let i = 0; i < 8; i++) {
     if (data[i] !== PNG_SIGNATURE[i]) return null;
   }
@@ -156,14 +151,14 @@ export async function convertPngToStandard(
   const isCgBI = chunks.some((c) => c.type === "CgBI");
 
   if (!isCgBI) {
-    // Standard PNG - just create blob URL directly
+    // standard png - just create blob URL directly
     const buf = new ArrayBuffer(data.byteLength);
     new Uint8Array(buf).set(data);
     const blob = new Blob([buf], { type: "image/png" });
     return URL.createObjectURL(blob);
   }
 
-  // Parse IHDR
+  // parse IHDR
   const ihdr = chunks.find((c) => c.type === "IHDR");
   if (!ihdr) return null;
 
@@ -171,10 +166,10 @@ export async function convertPngToStandard(
   const height = readUint32BE(ihdr.data, 4);
   const colorType = ihdr.data[9];
 
-  // Bytes per pixel: colorType 6 = RGBA (4), colorType 2 = RGB (3)
+  // bytes per pixel: colorType 6 = RGBA (4), colorType 2 = RGB (3)
   const bpp = colorType === 6 ? 4 : colorType === 2 ? 3 : 4;
 
-  // Concatenate all IDAT chunks
+  // concatenate all IDAT chunks
   const idatChunks = chunks.filter((c) => c.type === "IDAT");
   const totalIdatLen = idatChunks.reduce((s, c) => s + c.data.length, 0);
   const compressed = new Uint8Array(totalIdatLen);
@@ -188,10 +183,10 @@ export async function convertPngToStandard(
     // CgBI uses raw deflate (no zlib header)
     const inflated = await rawInflate(compressed);
 
-    // Unfilter scanlines
+    // unfilter scanlines
     const pixels = unfilterScanlines(inflated, width, height, bpp);
 
-    // Swap BGRA → RGBA and un-premultiply alpha
+    // swap BGRA to RGBA and un-premultiply alpha
     for (let i = 0; i < width * height; i++) {
       const offset = i * bpp;
       const b = pixels[offset];
@@ -200,7 +195,7 @@ export async function convertPngToStandard(
       if (bpp === 4) {
         const a = pixels[offset + 3];
         if (a > 0 && a < 255) {
-          // Un-premultiply alpha
+          // un-premultiply alpha
           pixels[offset] = Math.min(255, Math.round((r * 255) / a));
           pixels[offset + 1] = Math.min(
             255,
@@ -208,18 +203,18 @@ export async function convertPngToStandard(
           );
           pixels[offset + 2] = Math.min(255, Math.round((b * 255) / a));
         } else {
-          // Swap B and R
+          // swap B and R
           pixels[offset] = r;
           pixels[offset + 2] = b;
         }
       } else {
-        // RGB only - just swap B and R
+        // RGB only so just swap B and R
         pixels[offset] = r;
         pixels[offset + 2] = b;
       }
     }
 
-    // Render to canvas and export as standard PNG
+    // render to canvas and export as standard PNG
     if (typeof document === "undefined") return null;
 
     const canvas = document.createElement("canvas");
@@ -233,7 +228,7 @@ export async function convertPngToStandard(
     if (bpp === 4) {
       imageData.data.set(pixels);
     } else {
-      // RGB → RGBA
+      // RGB to RGBA
       for (let i = 0; i < width * height; i++) {
         imageData.data[i * 4] = pixels[i * 3];
         imageData.data[i * 4 + 1] = pixels[i * 3 + 1];
