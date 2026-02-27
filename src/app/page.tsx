@@ -6,6 +6,7 @@ import DropZone from "@/components/DropZone";
 import AppDetails from "@/components/AppDetails";
 import FileTree from "@/components/FileTree";
 import PlistEditor from "@/components/PlistEditor";
+import VirusTotalPanel from "@/components/VirusTotalPanel";
 import { parseIPA, rebuildIPA, IPAInfo } from "@/lib/ipa-parser";
 
 export default function Home() {
@@ -16,12 +17,14 @@ export default function Home() {
   const [fileName, setFileName] = useState<string>("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [modifiedPlist, setModifiedPlist] = useState<Record<string, unknown> | null>(null);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
 
   const handleFileSelected = useCallback(async (file: File) => {
     setIsLoading(true);
     setError(null);
     setModifiedPlist(null);
     setFileName(file.name);
+    setCurrentFile(file);
 
     try {
       const result = await parseIPA(file);
@@ -70,6 +73,7 @@ export default function Home() {
     setError(null);
     setModifiedPlist(null);
     setFileName("");
+    setCurrentFile(null);
   }, []);
 
   if (!ipaInfo) {
@@ -122,6 +126,7 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <AppDetails info={ipaInfo} />
+        <VirusTotalPanel file={currentFile} />
         <PlistEditor
           key={fileName}
           plistData={modifiedPlist || ipaInfo.rawPlist}
