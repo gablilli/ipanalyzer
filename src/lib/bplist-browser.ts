@@ -83,7 +83,7 @@ export function parseBinaryPlist(data: Uint8Array): Record<string, unknown> {
   }
 
   function parseInteger(offset: number, objInfo: number): number {
-    const length = Math.pow(2, objInfo);
+    const length = 1 << objInfo;
     if (length > MAX_OBJECT_SIZE) {
       throw new Error("Integer too large");
     }
@@ -99,7 +99,7 @@ export function parseBinaryPlist(data: Uint8Array): Record<string, unknown> {
   }
 
   function parseReal(offset: number, objInfo: number): number {
-    const length = Math.pow(2, objInfo);
+    const length = 1 << objInfo;
     if (length > MAX_OBJECT_SIZE) {
       throw new Error("Real too large");
     }
@@ -213,7 +213,7 @@ export function parseBinaryPlist(data: Uint8Array): Record<string, unknown> {
   function readLengthField(offset: number): { offset: number; length: number } {
     const intType = data[offset + 1];
     const intInfo = intType & 0x0f;
-    const intLength = Math.pow(2, intInfo);
+    const intLength = 1 << intInfo;
     const length = readUIntFromBytes(data, offset + 2, intLength);
     return { offset: 2 + intLength, length };
   }
