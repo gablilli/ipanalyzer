@@ -84,11 +84,11 @@ function parsePlistData(buffer: ArrayBuffer): Record<string, unknown> {
   const header = new TextDecoder().decode(uint8.slice(0, 6));
 
   if (header === "bplist") {
-    // Binary plist — use browser-compatible binary parser
+    // if binary plist then use browser-compatible binary parser
     return parseBinaryPlist(uint8);
   }
 
-  // XML plist — decode as text and parse
+  // xml plist so decode as text and parse
   const text = new TextDecoder().decode(uint8).trim();
   if (!text.startsWith("<?xml") && !text.startsWith("<plist") && !text.startsWith("<!DOCTYPE")) {
     throw new Error("Unrecognized plist format");
@@ -104,10 +104,10 @@ async function tryLoadIcon(
   if (!file) return null;
   try {
     const uint8 = await file.async("uint8array");
-    // Try CgBI conversion (also handles standard PNGs)
+    // try cgbi conversion (also handles standard pngs)
     const url = await convertPngToStandard(uint8);
     if (url) return url;
-    // Fallback: try as raw blob (for JPEG or other formats)
+    // just a fallback: try as raw blob (for jpeg or other formats)
     const buf = new ArrayBuffer(uint8.byteLength);
     new Uint8Array(buf).set(uint8);
     const blob = new Blob([buf], { type: "image/png" });
@@ -122,7 +122,7 @@ async function findAppIcon(
   appPath: string,
   iconFiles: string[]
 ): Promise<string | null> {
-  // Build candidate list from plist icon names
+  // build candidate list from plist icon names
   const candidates = [
     ...iconFiles.map((f) => `${appPath}/${f}`),
     ...iconFiles.map((f) => `${appPath}/${f}@3x.png`),
@@ -142,10 +142,10 @@ async function findAppIcon(
     if (url) return url;
   }
 
-  // Fallback: search for any AppIcon PNG in the app bundle
+  // another fallback: search for any AppIcon png in the app bundle
   const allFiles = Object.keys(zip.files);
   const iconPattern = /AppIcon.*\.png$/i;
-  // Prefer larger icons (sort by name descending to get @3x before @2x)
+  // prefer larger icons (sort by name descending to get @3x before @2x)
   const iconMatches = allFiles
     .filter((f) => f.startsWith(appPath + "/") && iconPattern.test(f) && !zip.files[f].dir)
     .sort((a, b) => b.localeCompare(a));
@@ -155,7 +155,7 @@ async function findAppIcon(
     if (url) return url;
   }
 
-  // Last resort: iTunesArtwork in IPA root (standard JPEG/PNG, not CgBI)
+  // last resort: itunesartwork in IPA root (standard jpeg/png, not cgbi)
   for (const artworkPath of ["iTunesArtwork@2x", "iTunesArtwork"]) {
     const file = zip.file(artworkPath);
     if (file) {
@@ -198,7 +198,7 @@ export async function parseIPA(file: File): Promise<{ info: IPAInfo; zip: JSZip 
   try {
     plistData = parsePlistData(plistBuffer);
   } catch {
-    // Only try XML fallback if data actually looks like XML text
+    // only try XML fallback if data actually looks like XML text
     const text = new TextDecoder().decode(new Uint8Array(plistBuffer)).trim();
     if (text.startsWith("<")) {
       try {
