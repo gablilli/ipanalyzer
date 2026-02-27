@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import plist from "plist";
+import { parseBinaryPlist } from "./bplist-browser";
 import { convertPngToStandard } from "./cgbi-png";
 
 export interface FileEntry {
@@ -83,9 +84,8 @@ function parsePlistData(buffer: ArrayBuffer): Record<string, unknown> {
   const header = new TextDecoder().decode(uint8.slice(0, 6));
 
   if (header === "bplist") {
-    // Binary plist — parse directly with Buffer, no XML round-trip
-    const nodeBuffer = Buffer.from(uint8);
-    return plist.parse(nodeBuffer as unknown as string) as Record<string, unknown>;
+    // Binary plist — use browser-compatible binary parser
+    return parseBinaryPlist(uint8);
   }
 
   // XML plist — decode as text and parse
