@@ -214,7 +214,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
 
       <div className="px-4 py-3">
         {!result && !error && !notFound && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 sm:justify-between">
             <div className="text-xs text-muted-foreground">
               {sha256 ? (
                 <span>
@@ -227,7 +227,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
             <button
               onClick={handleScan}
               disabled={isHashing || isScanning}
-              className="text-xs px-3 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
+              className="text-xs px-3 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50 self-start sm:self-auto"
             >
               {isHashing ? "hashing..." : isScanning ? "scanning..." : "scan"}
             </button>
@@ -287,7 +287,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
         {result && (
           <div className="space-y-3">
             {/* Summary */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-3">
                 <span
                   className={`text-sm font-bold ${
@@ -353,7 +353,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
             </div>
 
             {/* Stats breakdown */}
-            <div className="flex gap-4 text-xs">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
               <span className="text-red-400">⬤ {result.malicious} malicious</span>
               {result.suspicious > 0 && (
                 <span className="text-yellow-400">⬤ {result.suspicious} suspicious</span>
@@ -374,7 +374,7 @@ export default function VirusTotalPanel({ file }: VirusTotalPanelProps) {
                     .map((engine) => (
                       <div
                         key={engine.name}
-                        className="flex items-center justify-between text-xs"
+                        className="flex items-center justify-between gap-2 text-xs"
                       >
                         <span className="text-muted-foreground">{engine.name}</span>
                         <span

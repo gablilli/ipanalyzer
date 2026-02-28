@@ -93,29 +93,29 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="border-b border-border">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
             <h1
-              className="text-sm font-bold tracking-wider uppercase cursor-pointer hover:text-muted-foreground transition-colors"
+              className="text-sm font-bold tracking-wider uppercase cursor-pointer hover:text-muted-foreground transition-colors shrink-0"
               onClick={handleReset}
             >
               IPA Analyzer
             </h1>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground truncate min-w-0">
               / {fileName}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleReset}
-              className="text-xs px-3 py-1.5 border border-border rounded-md hover:border-muted-foreground transition-colors"
+              className="text-xs px-2.5 py-1.5 border border-border rounded-md hover:border-muted-foreground transition-colors"
             >
               new file
             </button>
             <button
               onClick={handleDownload}
               disabled={isDownloading}
-              className="text-xs px-3 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
+              className="text-xs px-2.5 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
             >
               {isDownloading ? "building..." : modifiedPlist ? "download modified" : "download ipa"}
             </button>
@@ -124,7 +124,7 @@ export default function Home() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
         <AppDetails info={ipaInfo} />
         <VirusTotalPanel file={currentFile} />
         <PlistEditor

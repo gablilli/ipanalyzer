@@ -71,7 +71,7 @@ export default function DropZone({ onFileSelected, isLoading }: DropZoneProps) {
         onDragOver={handleDrag}
         onDrop={handleDrop}
         className={`
-          w-full max-w-lg border border-dashed rounded-xl p-16
+          w-full max-w-lg border border-dashed rounded-xl p-8 sm:p-16
           flex flex-col items-center justify-center gap-4
           transition-colors duration-200 cursor-pointer
           ${isDragging ? "border-foreground bg-accent/50" : "border-border hover:border-muted-foreground"}

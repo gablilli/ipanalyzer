@@ -26,7 +26,7 @@ function PlistValue({
         className="flex items-center gap-2 py-1 px-2 text-xs"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        <span className="text-muted-foreground w-48 shrink-0 truncate">{keyName}</span>
+        <span className="text-muted-foreground w-28 sm:w-48 shrink-0 truncate">{keyName}</span>
         <span className="text-muted-foreground/50 italic">null</span>
       </div>
     );
@@ -106,7 +106,7 @@ function PlistValue({
         className="flex items-center gap-2 py-1 px-2 text-xs"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        <span className="text-muted-foreground w-48 shrink-0 truncate">{keyName}</span>
+        <span className="text-muted-foreground w-28 sm:w-48 shrink-0 truncate">{keyName}</span>
         <button
           className={`px-2 py-0.5 border rounded text-xs ${
             value ? "border-green-600 text-green-400" : "border-red-600 text-red-400"
@@ -125,7 +125,7 @@ function PlistValue({
         className="flex items-center gap-2 py-1 px-2 text-xs"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        <span className="text-muted-foreground w-48 shrink-0 truncate">{keyName}</span>
+        <span className="text-muted-foreground w-28 sm:w-48 shrink-0 truncate">{keyName}</span>
         <span className="text-blue-400">{value.toISOString()}</span>
       </div>
     );
@@ -137,12 +137,12 @@ function PlistValue({
         className="flex items-center gap-2 py-1 px-2 text-xs"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        <span className="text-muted-foreground w-48 shrink-0 truncate">{keyName}</span>
+        <span className="text-muted-foreground w-28 sm:w-48 shrink-0 truncate">{keyName}</span>
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(keyName, Number(e.target.value))}
-          className="bg-transparent border border-border px-2 py-0.5 w-32 text-xs focus:outline-none focus:border-muted-foreground"
+          className="bg-transparent border border-border px-2 py-0.5 w-24 sm:w-32 text-xs focus:outline-none focus:border-muted-foreground"
         />
       </div>
     );
@@ -153,7 +153,7 @@ function PlistValue({
       className="flex items-center gap-2 py-1 px-2 text-xs"
       style={{ paddingLeft: `${depth * 16 + 8}px` }}
     >
-      <span className="text-muted-foreground w-48 shrink-0 truncate" title={keyName}>{keyName}</span>
+      <span className="text-muted-foreground w-28 sm:w-48 shrink-0 truncate" title={keyName}>{keyName}</span>
       <input
         type="text"
         value={String(value)}
