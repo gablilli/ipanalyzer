@@ -172,9 +172,14 @@ export async function extractDebAppFiles(
 
   const tarEntries = parseTarEntries(tarBytes);
   const appCandidates = new Map<string, { relPath: string; data: Uint8Array }[]>();
+  const genericPayloadFiles: { relPath: string; data: Uint8Array }[] = [];
 
   for (const entry of tarEntries) {
     const normalized = normalizePath(entry.path);
+    if (!normalized || normalized.startsWith("DEBIAN/")) continue;
+
+    genericPayloadFiles.push({ relPath: normalized, data: entry.data });
+
     const match = normalized.match(/(?:^|\/)([^/]+\.app)\/(.+)$/);
     if (!match) continue;
     const appName = match[1];
@@ -185,20 +190,29 @@ export async function extractDebAppFiles(
     appCandidates.get(appName)!.push({ relPath, data: entry.data });
   }
 
-  if (appCandidates.size === 0) {
-    throw new Error("No .app payload found inside DEB data.tar");
+  if (appCandidates.size > 0) {
+    const selected = Array.from(appCandidates.entries()).sort((a, b) => b[1].length - a[1].length)[0];
+    if (!selected) {
+      throw new Error("No .app payload found inside DEB data.tar");
+    }
+    const [appBundleName, selectedFiles] = selected;
+
+    const files: InjectedIPAFile[] = selectedFiles.map((f) => ({
+      path: `${ipaAppPath}/${f.relPath}`,
+      data: f.data,
+    }));
+
+    return { files, appBundleName, multipleAppBundles: appCandidates.size > 1 };
   }
 
-  const selected = Array.from(appCandidates.entries()).sort((a, b) => b[1].length - a[1].length)[0];
-  if (!selected) {
-    throw new Error("No .app payload found inside DEB data.tar");
+  if (genericPayloadFiles.length === 0) {
+    throw new Error("No injectable payload files found inside DEB data.tar");
   }
-  const [appBundleName, selectedFiles] = selected;
 
-  const files: InjectedIPAFile[] = selectedFiles.map((f) => ({
+  const files: InjectedIPAFile[] = genericPayloadFiles.map((f) => ({
     path: `${ipaAppPath}/${f.relPath}`,
     data: f.data,
   }));
 
-  return { files, appBundleName, multipleAppBundles: appCandidates.size > 1 };
+  return { files, appBundleName: "DEB payload", multipleAppBundles: false };
 }
