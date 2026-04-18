@@ -74,6 +74,12 @@ async function gunzip(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(buffer);
 }
 
+async function unlzma(data: Uint8Array): Promise<Uint8Array> {
+  const lzmajs = await import("lzma-purejs");
+  const result = lzmajs.default.decompressFile(data) as Uint8Array | number[];
+  return result instanceof Uint8Array ? result : new Uint8Array(result);
+}
+
 function readTarString(bytes: Uint8Array, start: number, length: number): string {
   const end = start + length;
   let i = start;
@@ -140,6 +146,8 @@ export async function extractDebAppFiles(
   let tarBytes = dataEntry.data;
   if (dataEntry.name.endsWith(".gz")) {
     tarBytes = await gunzip(dataEntry.data);
+  } else if (dataEntry.name.endsWith(".lzma")) {
+    tarBytes = await unlzma(dataEntry.data);
   } else if (dataEntry.name !== "data.tar") {
     throw new Error(`Unsupported DEB compression: ${dataEntry.name}`);
   }
