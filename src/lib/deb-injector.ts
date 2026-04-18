@@ -27,7 +27,7 @@ function parseArEntries(bytes: Uint8Array): ArEntry[] {
     const nameRaw = decodeAscii(header.slice(0, 16)).trim();
     const sizeRaw = decodeAscii(header.slice(48, 58)).trim();
     const size = parseInt(sizeRaw, 10);
-    if (!Number.isFinite(size) || size < 0) {
+    if (Number.isNaN(size) || !Number.isFinite(size) || size < 0) {
       throw new Error("Invalid DEB: malformed ar member size");
     }
 
@@ -36,7 +36,12 @@ function parseArEntries(bytes: Uint8Array): ArEntry[] {
 
     if (nameRaw.startsWith("#1/")) {
       const nameLength = parseInt(nameRaw.slice(3), 10);
-      if (!Number.isFinite(nameLength) || nameLength < 0 || dataStart + nameLength > bytes.length) {
+      if (
+        Number.isNaN(nameLength) ||
+        !Number.isFinite(nameLength) ||
+        nameLength < 0 ||
+        dataStart + nameLength > bytes.length
+      ) {
         throw new Error("Invalid DEB: malformed extended filename");
       }
       memberName = decodeAscii(bytes.slice(dataStart, dataStart + nameLength)).replace(/\0+$/, "");
@@ -63,9 +68,8 @@ async function gunzip(data: Uint8Array): Promise<Uint8Array> {
   if (typeof DecompressionStream === "undefined") {
     throw new Error("This browser does not support gzip decompression");
   }
-  const copied = new Uint8Array(data.byteLength);
-  copied.set(data);
-  const stream = new Blob([copied.buffer]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const payload = Uint8Array.from(data);
+  const stream = new Blob([payload]).stream().pipeThrough(new DecompressionStream("gzip"));
   const buffer = await new Response(stream).arrayBuffer();
   return new Uint8Array(buffer);
 }
@@ -118,13 +122,13 @@ function parseTarEntries(bytes: Uint8Array): TarEntry[] {
 }
 
 function normalizePath(path: string): string {
-  return path.replace(/\\/g, "/").replace(/^\.?\//, "").replace(/^\/+/, "");
+  return path.replace(/\\/g, "/").replace(/^\.?\//, "");
 }
 
 export async function extractDebAppFiles(
   debFile: File,
   ipaAppPath: string
-): Promise<{ files: InjectedIPAFile[]; appBundleName: string }> {
+): Promise<{ files: InjectedIPAFile[]; appBundleName: string; multipleAppBundles: boolean }> {
   const debBytes = new Uint8Array(await debFile.arrayBuffer());
   const arEntries = parseArEntries(debBytes);
   const dataEntry = arEntries.find((entry) => /^data\.tar(\..+)?$/.test(entry.name));
@@ -160,6 +164,9 @@ export async function extractDebAppFiles(
   }
 
   const selected = Array.from(appCandidates.entries()).sort((a, b) => b[1].length - a[1].length)[0];
+  if (!selected) {
+    throw new Error("No .app payload found inside DEB data.tar");
+  }
   const [appBundleName, selectedFiles] = selected;
 
   const files: InjectedIPAFile[] = selectedFiles.map((f) => ({
@@ -167,5 +174,5 @@ export async function extractDebAppFiles(
     data: f.data,
   }));
 
-  return { files, appBundleName };
+  return { files, appBundleName, multipleAppBundles: appCandidates.size > 1 };
 }

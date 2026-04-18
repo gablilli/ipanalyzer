@@ -30,7 +30,11 @@ export default function DebInjectorPanel({ ipaAppPath, onFilesReady }: DebInject
         const result = await extractDebAppFiles(file, ipaAppPath);
         onFilesReady(result.files);
         setFileCount(result.files.length);
-        setStatus(`Injected ${result.files.length} files from ${result.appBundleName}`);
+        setStatus(
+          result.multipleAppBundles
+            ? `Injected ${result.files.length} files from ${result.appBundleName} (auto-selected)`
+            : `Injected ${result.files.length} files from ${result.appBundleName}`
+        );
       } catch (err) {
         setFileCount(0);
         onFilesReady(null);
@@ -60,7 +64,7 @@ export default function DebInjectorPanel({ ipaAppPath, onFilesReady }: DebInject
             onClick={handleClear}
             className="text-xs px-3 py-1 border border-border rounded-md hover:border-muted-foreground transition-colors"
           >
-            clear
+            Clear
           </button>
         )}
       </div>
@@ -81,8 +85,8 @@ export default function DebInjectorPanel({ ipaAppPath, onFilesReady }: DebInject
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Extracts <span className="text-foreground">data.tar(.gz)</span> from the DEB and overlays the package
-          <span className="text-foreground"> .app</span> files into this IPA before download.
+          Extracts <span className="text-foreground">data.tar(.gz)</span> from the DEB and overlays package .app
+          files into this IPA before download.
         </p>
 
         {status && <p className="text-xs text-green-400">{status}</p>}

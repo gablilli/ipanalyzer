@@ -80,6 +80,9 @@ export default function Home() {
     setCurrentFile(null);
   }, []);
 
+  const injectedFileCount = injectedFiles?.length ?? 0;
+  const hasInjectedFiles = injectedFileCount > 0;
+
   if (!ipaInfo) {
     return (
       <div>
@@ -123,7 +126,7 @@ export default function Home() {
             >
               {isDownloading
                 ? "building..."
-                : modifiedPlist || (injectedFiles && injectedFiles.length > 0)
+                : modifiedPlist || hasInjectedFiles
                   ? "download modified"
                   : "download ipa"}
             </button>
@@ -143,11 +146,11 @@ export default function Home() {
         />
         <FileTree tree={ipaInfo.fileTree} />
 
-        {(modifiedPlist || (injectedFiles && injectedFiles.length > 0)) && (
+        {(modifiedPlist || hasInjectedFiles) && (
           <div className="border border-green-800 bg-green-900/10 rounded-md px-4 py-3 text-xs text-green-400 flex items-center justify-between">
             <span>
               changes pending — download to apply
-              {injectedFiles && injectedFiles.length > 0 ? ` (${injectedFiles.length} DEB files)` : ""}
+              {hasInjectedFiles ? ` (${injectedFileCount} DEB files)` : ""}
             </span>
             <button
               onClick={() => {
