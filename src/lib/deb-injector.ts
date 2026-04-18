@@ -75,8 +75,31 @@ async function gunzip(data: Uint8Array): Promise<Uint8Array> {
 }
 
 async function unlzma(data: Uint8Array): Promise<Uint8Array> {
-  const lzmajs = await import("lzma-purejs");
-  const result = lzmajs.default.decompressFile(data) as Uint8Array | number[];
+  const lzmaModule = await import("lzma/src/lzma_worker.js");
+  const lzmaExport = lzmaModule as unknown as {
+    default?: { LZMA?: { decompress: (input: Uint8Array, onFinish: (result: Uint8Array | number[] | null, error?: unknown) => void) => void } };
+    LZMA?: { decompress: (input: Uint8Array, onFinish: (result: Uint8Array | number[] | null, error?: unknown) => void) => void };
+    "module.exports"?: { LZMA?: { decompress: (input: Uint8Array, onFinish: (result: Uint8Array | number[] | null, error?: unknown) => void) => void } };
+  };
+  const lzma = lzmaExport.default?.LZMA || lzmaExport.LZMA || lzmaExport["module.exports"]?.LZMA;
+  if (!lzma) {
+    throw new Error("Failed to initialize LZMA decoder");
+  }
+
+  const result = await new Promise<Uint8Array | number[]>((resolve, reject) => {
+    lzma.decompress(data, (output: Uint8Array | number[] | null, error?: unknown) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      if (!output) {
+        reject(new Error("Failed to decompress LZMA payload"));
+        return;
+      }
+      resolve(output);
+    });
+  });
+
   return result instanceof Uint8Array ? result : new Uint8Array(result);
 }
 
