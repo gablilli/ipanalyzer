@@ -7,7 +7,8 @@ import AppDetails from "@/components/AppDetails";
 import FileTree from "@/components/FileTree";
 import PlistEditor from "@/components/PlistEditor";
 import VirusTotalPanel from "@/components/VirusTotalPanel";
-import { parseIPA, rebuildIPA, IPAInfo } from "@/lib/ipa-parser";
+import DebInjectorPanel from "@/components/DebInjectorPanel";
+import { parseIPA, rebuildIPA, IPAInfo, InjectedIPAFile } from "@/lib/ipa-parser";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,11 +19,13 @@ export default function Home() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [modifiedPlist, setModifiedPlist] = useState<Record<string, unknown> | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [injectedFiles, setInjectedFiles] = useState<InjectedIPAFile[] | null>(null);
 
   const handleFileSelected = useCallback(async (file: File) => {
     setIsLoading(true);
     setError(null);
     setModifiedPlist(null);
+    setInjectedFiles(null);
     setFileName(file.name);
     setCurrentFile(file);
 
@@ -49,7 +52,7 @@ export default function Home() {
     setIsDownloading(true);
     try {
       const plistToUse = modifiedPlist || ipaInfo.rawPlist;
-      const blob = await rebuildIPA(zip, ipaInfo.appPath, plistToUse);
+      const blob = await rebuildIPA(zip, ipaInfo.appPath, plistToUse, injectedFiles || []);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -65,13 +68,14 @@ export default function Home() {
     } finally {
       setIsDownloading(false);
     }
-  }, [zip, ipaInfo, modifiedPlist, fileName]);
+  }, [zip, ipaInfo, modifiedPlist, injectedFiles, fileName]);
 
   const handleReset = useCallback(() => {
     setIpaInfo(null);
     setZip(null);
     setError(null);
     setModifiedPlist(null);
+    setInjectedFiles(null);
     setFileName("");
     setCurrentFile(null);
   }, []);
@@ -117,7 +121,11 @@ export default function Home() {
               disabled={isDownloading}
               className="text-xs px-2.5 py-1.5 border border-foreground rounded-md bg-foreground text-background hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-50"
             >
-              {isDownloading ? "building..." : modifiedPlist ? "download modified" : "download ipa"}
+              {isDownloading
+                ? "building..."
+                : modifiedPlist || (injectedFiles && injectedFiles.length > 0)
+                  ? "download modified"
+                  : "download ipa"}
             </button>
           </div>
         </div>
@@ -127,6 +135,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
         <AppDetails info={ipaInfo} />
         <VirusTotalPanel file={currentFile} />
+        <DebInjectorPanel ipaAppPath={ipaInfo.appPath} onFilesReady={setInjectedFiles} />
         <PlistEditor
           key={fileName}
           plistData={modifiedPlist || ipaInfo.rawPlist}
@@ -134,11 +143,17 @@ export default function Home() {
         />
         <FileTree tree={ipaInfo.fileTree} />
 
-        {modifiedPlist && (
+        {(modifiedPlist || (injectedFiles && injectedFiles.length > 0)) && (
           <div className="border border-green-800 bg-green-900/10 rounded-md px-4 py-3 text-xs text-green-400 flex items-center justify-between">
-            <span>plist changes pending — download to apply</span>
+            <span>
+              changes pending — download to apply
+              {injectedFiles && injectedFiles.length > 0 ? ` (${injectedFiles.length} DEB files)` : ""}
+            </span>
             <button
-              onClick={() => setModifiedPlist(null)}
+              onClick={() => {
+                setModifiedPlist(null);
+                setInjectedFiles(null);
+              }}
               className="text-xs underline hover:no-underline"
             >
               discard

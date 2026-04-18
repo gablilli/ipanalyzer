@@ -28,6 +28,11 @@ export interface IPAInfo {
   appPath: string;
 }
 
+export interface InjectedIPAFile {
+  path: string;
+  data: Uint8Array;
+}
+
 function buildFileTree(zip: JSZip): FileEntry {
   const root: FileEntry = {
     path: "",
@@ -253,10 +258,14 @@ export async function parseIPA(file: File): Promise<{ info: IPAInfo; zip: JSZip 
 export async function rebuildIPA(
   zip: JSZip,
   appPath: string,
-  modifiedPlist: Record<string, unknown>
+  modifiedPlist: Record<string, unknown>,
+  injectedFiles: InjectedIPAFile[] = []
 ): Promise<Blob> {
   const infoPlistPath = `${appPath}/Info.plist`;
   const xmlPlist = plist.build(modifiedPlist as plist.PlistValue);
   zip.file(infoPlistPath, xmlPlist);
+  for (const file of injectedFiles) {
+    zip.file(file.path, file.data);
+  }
   return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
 }
