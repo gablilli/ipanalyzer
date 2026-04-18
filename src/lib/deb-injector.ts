@@ -176,12 +176,13 @@ export async function extractDebAppFiles(
 
   for (const entry of tarEntries) {
     const normalized = normalizePath(entry.path);
+    // Skip package metadata files: only filesystem payload files should be injected.
     if (!normalized || normalized.startsWith("DEBIAN/")) continue;
-
-    genericPayloadFiles.push({ relPath: normalized, data: entry.data });
-
     const match = normalized.match(/(?:^|\/)([^/]+\.app)\/(.+)$/);
-    if (!match) continue;
+    if (!match) {
+      genericPayloadFiles.push({ relPath: normalized, data: entry.data });
+      continue;
+    }
     const appName = match[1];
     const relPath = match[2];
     if (!appCandidates.has(appName)) {
@@ -214,5 +215,5 @@ export async function extractDebAppFiles(
     data: f.data,
   }));
 
-  return { files, appBundleName: "DEB payload", multipleAppBundles: false };
+  return { files, appBundleName: "DEB generic payload", multipleAppBundles: false };
 }
