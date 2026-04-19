@@ -148,10 +148,10 @@ export default function Home() {
 
         {(modifiedPlist || hasInjectedFiles) && (
           <div className="border border-green-800 bg-green-900/10 rounded-md px-4 py-3 text-xs text-green-400 flex items-center justify-between">
-            <span>
-              changes pending — download to apply
-              {hasInjectedFiles ? ` (${injectedFileCount} DEB files)` : ""}
-            </span>
+              <span>
+                changes pending — download to apply
+              {hasInjectedFiles ? ` (${injectedFileCount} injected files)` : ""}
+              </span>
             <button
               onClick={() => {
                 setModifiedPlist(null);
