@@ -267,5 +267,11 @@ export async function rebuildIPA(
   for (const file of injectedFiles) {
     zip.file(file.path, file.data);
   }
-  return zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+  return zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    // Keep UNIX zip metadata (permissions/symlink flags) so sideload installers
+    // can treat the rebuilt archive as a standard IPA package.
+    platform: "UNIX",
+  });
 }
