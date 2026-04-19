@@ -37,11 +37,7 @@ export default function DebInjectorPanel({ ipaAppPath, onFilesReady }: DebInject
           ];
           onFilesReady(files);
           setFileCount(files.length);
-          setStatus(
-            files.length === 1
-              ? `Injected ${files.length} file from ${file.name}`
-              : `Injected ${files.length} files from ${file.name}`
-          );
+          setStatus(`Injected ${files.length} file from ${file.name}`);
         } else {
           const result = await extractDebAppFiles(file, ipaAppPath);
           onFilesReady(result.files);
@@ -102,7 +98,7 @@ export default function DebInjectorPanel({ ipaAppPath, onFilesReady }: DebInject
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Extracts <span className="text-foreground">data.tar</span> from DEB packages, or injects a
+          Extracts <span className="text-foreground">data.tar(.gz/.lzma)</span> from DEB packages, or injects a
           selected <span className="text-foreground">.dylib</span> into the app bundle before download.
         </p>
 
